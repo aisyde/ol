@@ -27,8 +27,17 @@
   "main": "src/backend/worker.ts",
   "compatibility_date": "2026-08-04",
   "compatibility_flags": ["nodejs_compat"],
-  "workers_dev": false,
+  "workers_dev": true,
   "preview_urls": false,
+
+  // Workers Builds 只执行 deploy 命令（npx wrangler deploy），不会自动跑 build；
+  // 而 assets.directory=./dist 必须先由构建生成，否则报
+  //   The directory specified by the "assets.directory" field ... does not exist
+  // wrangler deploy 会先执行这里的 command（[custom build]），因此把构建挂在这里，
+  // 让 CI 的部署链路自给自足，无需在控制台额外配 Build command。
+  "build": {
+    "command": "node scripts/fetch-frontend.mjs && node scripts/build-edge.mjs"
+  },
 
   // ⚠️ run_worker_first 只放行 HTML 入口，不能改成 true（全量放行）：
   //   默认「资源优先」时 / 与 /index.html 由静态层直接返回，Worker 根本不会执行，
